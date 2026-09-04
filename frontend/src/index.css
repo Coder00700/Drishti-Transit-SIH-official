@@ -1,0 +1,262 @@
+/* Orbital Operations Console: Midnight civic intelligence, layered glass, recessed telemetry, neomorphism & signal accents. */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.11 0.025 240);
+  --foreground: oklch(0.93 0.03 240);
+  --card: oklch(0.15 0.028 238);
+  --card-foreground: oklch(0.93 0.03 240);
+  --popover: oklch(0.14 0.03 238);
+  --popover-foreground: oklch(0.93 0.03 240);
+  --primary: oklch(0.82 0.09 248);
+  --primary-foreground: oklch(0.15 0.04 245);
+  --secondary: oklch(0.25 0.10 248);
+  --secondary-foreground: oklch(0.94 0.04 240);
+  --muted: oklch(0.20 0.035 240);
+  --muted-foreground: oklch(0.68 0.04 238);
+  --accent: oklch(0.78 0.14 75);
+  --accent-foreground: oklch(0.16 0.035 55);
+  --destructive: oklch(0.72 0.15 25);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.82 0.09 248);
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html, body, #root { min-height: 100%; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  button, a, input { -webkit-tap-highlight-color: transparent; }
+  button:not(:disabled), a[href] { cursor: pointer; }
+}
+
+@layer components {
+  /* Glassmorphism 2.0 with ambient top edge glow and backdrop blur */
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(20, 38, 62, 0.75) 0%, rgba(8, 20, 36, 0.85) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: -4px -4px 14px rgba(255, 255, 255, 0.02), 10px 14px 32px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
+
+  .glass-panel-subtle {
+    background: linear-gradient(135deg, rgba(16, 32, 52, 0.55) 0%, rgba(6, 17, 31, 0.65) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 4px 6px 16px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .glass-modal {
+    background: linear-gradient(145deg, rgba(18, 35, 58, 0.94) 0%, rgba(7, 18, 32, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+  }
+
+  /* Tactile Neomorphism: Inset telemetry cells */
+  .neo-recessed {
+    background: rgba(5, 17, 30, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -3px -3px 8px rgba(255, 255, 255, 0.035);
+  }
+
+  .neo-raised {
+    background: linear-gradient(145deg, rgba(28, 48, 72, 0.7) 0%, rgba(12, 26, 44, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 4px 6px 14px rgba(0, 0, 0, 0.35), -2px -2px 8px rgba(255, 255, 255, 0.02);
+  }
+
+  /* Extruded interactive buttons */
+  .neo-button {
+    background: linear-gradient(145deg, rgba(74, 142, 255, 0.26), rgba(74, 142, 255, 0.09));
+    border: 1px solid rgba(173, 198, 255, 0.32);
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.15), 3px 4px 10px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1), background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .neo-button:hover {
+    background: linear-gradient(145deg, rgba(74, 142, 255, 0.38), rgba(74, 142, 255, 0.15));
+    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.25), 0 0 16px rgba(74, 142, 255, 0.3), 3px 4px 10px rgba(0, 0, 0, 0.4);
+  }
+  .neo-button:active {
+    transform: scale(0.97) translateY(1px);
+    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.4);
+  }
+
+  .neo-button-danger {
+    background: linear-gradient(145deg, rgba(255, 80, 80, 0.28), rgba(255, 80, 80, 0.08));
+    border: 1px solid rgba(255, 180, 171, 0.35);
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.15), 3px 4px 10px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .neo-button-danger:hover {
+    background: linear-gradient(145deg, rgba(255, 80, 80, 0.42), rgba(255, 80, 80, 0.15));
+    box-shadow: 0 0 16px rgba(255, 80, 80, 0.35);
+  }
+  .neo-button-danger:active {
+    transform: scale(0.97);
+  }
+
+  .mono {
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.04em;
+  }
+
+  .scanlines {
+    position: relative;
+  }
+  .scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.18;
+    background: linear-gradient(rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.015), rgba(0, 0, 255, 0.03));
+    background-size: 100% 4px, 8px 100%;
+    z-index: 10;
+  }
+
+  .hud-grid {
+    background-size: 32px 32px;
+    background-image: linear-gradient(to right, rgba(173, 198, 255, 0.04) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(173, 198, 255, 0.04) 1px, transparent 1px);
+  }
+
+  .hud-dots {
+    background-image: radial-gradient(rgba(173, 198, 255, 0.15) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .live-pulse {
+    animation: live-pulse 2.2s ease-in-out infinite;
+  }
+
+  .radar-sweep {
+    animation: radar-sweep 6s linear infinite;
+  }
+
+  .water-ripple {
+    animation: ripple 3s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  }
+
+  .reticle-spin {
+    animation: reticle-spin 12s linear infinite;
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.18); }
+}
+
+@keyframes radar-sweep {
+  from { transform: rotate(0deg); opacity: 0.25; }
+  50% { opacity: 0.45; }
+  to { transform: rotate(360deg); opacity: 0.25; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes reticle-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(173, 198, 255, 0.3)); }
+  50% { filter: drop-shadow(0 0 14px rgba(173, 198, 255, 0.7)); }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(255, 180, 171, 0.45); }
+  70% { box-shadow: 0 0 0 12px rgba(255, 180, 171, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 180, 171, 0); }
+}
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pulse-alert {
+  animation: pulse-ring 2s infinite;
+}
+
+.animate-in {
+  animation: float-in 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Custom scrollbar for tactical UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(5, 17, 30, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(173, 198, 255, 0.18);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(173, 198, 255, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

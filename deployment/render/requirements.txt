@@ -1,0 +1,6 @@
+# Cloud API only. Never install backend/requirements.txt on Render (it includes AI).
+fastapi==0.141.1
+uvicorn[standard]==0.52.0
+pydantic==2.13.4
+pymongo==4.18.0
+python-dotenv>=1.1,<2

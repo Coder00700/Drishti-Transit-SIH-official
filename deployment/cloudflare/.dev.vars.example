@@ -1,0 +1,3 @@
+# Cloudflare runtime settings only. No MongoDB URI belongs here.
+RENDER_API_ORIGIN=https://YOUR-SERVICE.onrender.com
+EDGE_SHARED_SECRET=REPLACE_WITH_A_RANDOM_SECRET_AT_LEAST_32_CHARACTERS

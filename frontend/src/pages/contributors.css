@@ -1,0 +1,19 @@
+.provider-page { min-height:100vh; background:radial-gradient(ellipse at 20% 0%,#10372f55,transparent 42%),#071219; color:#e7edf2; }
+.provider-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:1rem max(1.25rem,calc((100vw - 1152px)/2)); border-bottom:1px solid #ffffff12; background:#071219e8; }
+.provider-card { padding:1.5rem; border:1px solid #ffffff12; border-radius:1.25rem; background:#0c1c27cc; }
+.provider-eyebrow { font-size:10px; letter-spacing:.18em; font-weight:700; color:#79d9b7; }
+.provider-label { display:flex; flex-direction:column; gap:.5rem; font-size:12px; font-weight:500; color:#cbd5e1; }
+.provider-input { width:100%; padding:.8rem .9rem; border:1px solid #ffffff20; border-radius:.65rem; background:#07131e; color:#eef4f8; font-size:14px; outline:none; }
+.provider-input:focus { border-color:#6ee7b7; box-shadow:0 0 0 3px #6ee7b715; }
+.provider-primary,.provider-secondary { display:inline-flex; justify-content:center; align-items:center; gap:.6rem; padding:.7rem 1rem; border-radius:.65rem; font-size:12px; font-weight:600; transition:background .2s; }
+.provider-primary { background:#7ce8bb; color:#09291f; border:1px solid #7ce8bb; }
+.provider-primary:hover { background:#a7f3d0; }
+.provider-secondary { background:#ffffff05; color:#d1dce6; border:1px solid #ffffff20; }
+.provider-secondary:hover { background:#ffffff0c; }
+.provider-primary:disabled,.provider-secondary:disabled { opacity:.4; cursor:not-allowed; }
+.provider-check { display:block; color:#aebecd; }
+.provider-check input { margin-right:.6rem; vertical-align:middle; accent-color:#6ee7b7; }
+.provider-pill { display:inline-flex; gap:.5rem; align-items:center; padding:.5rem .75rem; border:1px solid #ffffff15; border-radius:999px; }
+.provider-notice { border:1px solid #fbbf2428; background:#fbbf2408; color:#c9bb93; border-radius:.85rem; padding:1rem; font-size:13px; }
+.provider-error { border:1px solid #fb718540; background:#fb718510; color:#fecdd3; border-radius:.85rem; padding:1rem; font-size:13px; }
+.provider-page button:focus-visible,.provider-page a:focus-visible { outline:2px solid #6ee7b7; outline-offset:4px; }
