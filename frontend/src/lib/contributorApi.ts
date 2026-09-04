@@ -13,12 +13,19 @@ export type Activity = {
 export const POLICY_VERSION = '2026-09-04-v2';
 
 export async function contributorRequest<T>(path: string, method = 'GET', data?: unknown, signal?: AbortSignal): Promise<T> {
+  method = method.toUpperCase();
+  const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+  // Even bodyless actions (logout/withdraw) must satisfy the cloud JSON boundary.
+  const payload = data === undefined && mutating ? {} : data;
   const response = await fetch(BASE + path, {
     method, credentials: 'same-origin', signal,
-    headers: { ...(data !== undefined ? {'Content-Type':'application/json'} : {}), ...(method !== 'GET' ? {'X-Contributor-CSRF':csrf} : {}) },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    headers: { ...(payload !== undefined ? {'Content-Type':'application/json'} : {}), ...(mutating ? {'X-Contributor-CSRF':csrf} : {}) },
+    body: payload !== undefined ? JSON.stringify(payload) : undefined,
   });
-  return parseResponse<T>(response);
+  const result = await parseResponse<T>(response);
+  // Keep the token on failure: a failed request has not ended the server session.
+  if (path === '/logout' && method === 'POST') csrf = '';
+  return result;
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
