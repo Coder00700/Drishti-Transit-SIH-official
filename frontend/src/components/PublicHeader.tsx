@@ -1,4 +1,39 @@
-import { Link } from 'wouter';
-import { MapPinned, ArrowUpRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-export function PublicHeader(){return <header className="border-b border-white/10 bg-[#071522]"><nav aria-label="Main navigation" className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4"><Link href="/" className="flex items-center gap-3"><span className="rounded-xl bg-emerald-300 p-2.5 text-slate-950"><MapPinned size={23}/></span><span className="font-bold text-white">DRISHTI<span className="block text-[10px] font-normal uppercase tracking-[.18em] text-slate-400">Road progress · West Delhi</span></span></Link><div className="flex items-center gap-5 text-sm"><Link href="/" className="text-slate-300 hover:text-white">Progress</Link><Link href="/gis" className="text-slate-300 hover:text-white">Explore map</Link><Button asChild className="bg-emerald-300 text-slate-950 hover:bg-emerald-200"><Link href="/contribute/login">Contributors<ArrowUpRight size={16}/></Link></Button></div></nav></header>}
+import { Link } from "wouter";
+import { MapPinned, ArrowUpRight, Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
+export function PublicHeader() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <header className="preview-header">
+      <Link href="/" className="preview-brand">
+        <span className="preview-logo">
+          <MapPinned size={22} />
+        </span>
+        <span>
+          DRISHTI<small>Delhi road intelligence</small>
+        </span>
+      </Link>
+      <nav aria-label="Main navigation">
+        <Link href="/">Overview</Link>
+        <Link href="/gis">Live map</Link>
+      </nav>
+      <div className="preview-actions">
+        <button
+          type="button"
+          className="theme-button"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        <Button asChild className="contributor-link">
+          <Link href="/contribute/login">
+            Contribute
+            <ArrowUpRight size={16} />
+          </Link>
+        </Button>
+      </div>
+    </header>
+  );
+}

@@ -21,5 +21,7 @@ services:
         sync: false
       - key: EDGE_SHARED_SECRET
         sync: false
+      - key: TOMTOM_TRAFFIC_API_KEY
+        sync: false
       - key: ALLOW_REGISTRATION
         value: "false"

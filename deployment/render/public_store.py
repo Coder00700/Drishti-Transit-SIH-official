@@ -68,3 +68,31 @@ def roads(area_id='', offset=0, db=None):
                           'properties': {key: row.get(key) for key in
                           ('road_id', 'area_id', 'severity', 'confidence', 'model_version', 'observed_at')}}
                          for row in rows[:500]]}
+
+
+def demo_overview(db=None):
+    db = db or database()
+    pointer = db.demo_state.find_one({'_id': 'current'})
+    release_id = pointer.get('release_id') if pointer else None
+    if not release_id or not db.demo_releases.find_one({'_id': release_id, 'state': 'READY'}):
+        return {'coverage': {'roads': 0, 'localities': 0}, 'updates': [], 'data_mode': 'DEMO',
+                'synthetic': True, 'disclaimer': 'Synthetic demonstration data—not an official report or field assessment.'}
+    updates = list(db.demo_content_snapshots.find({'release_id': release_id}, {'_id': 0, 'release_id': 0})
+                   .sort('updated_at', -1).limit(24))
+    return {'coverage': {'roads': db.demo_road_snapshots.count_documents({'release_id': release_id}),
+                         'localities': len(db.demo_content_snapshots.distinct('area_id', {'release_id': release_id}))},
+            'updates': updates, 'data_mode': 'DEMO', 'synthetic': True,
+            'disclaimer': 'Synthetic demonstration data—not an official report or field assessment.'}
+
+
+def demo_roads(area_id='', db=None):
+    db = db or database()
+    pointer = db.demo_state.find_one({'_id': 'current'})
+    release_id = pointer.get('release_id') if pointer else None
+    query = {'release_id': release_id}
+    if area_id:
+        query['area_id'] = area_id
+    rows = list(db.demo_road_snapshots.find(query, {'_id': 0, 'release_id': 0}).limit(1000)) if release_id else []
+    return {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'geometry': row['geometry'],
+        'properties': {key: row.get(key) for key in ('road_id','area_id','locality_name','severity','confidence','model_version','observed_at','synthetic')}} for row in rows],
+        'data_mode': 'DEMO', 'synthetic': True}

@@ -4,22 +4,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/PublicHome";
+import Home from "./pages/ThemePreview";
 import GisOperations from "./pages/PublicGis";
 import NotFound from "./pages/NotFound";
-import { lazy, Suspense } from 'react';
-import { CLOUD_DEPLOYMENT } from './lib/deployment';
-const Contributors = lazy(() => import('./pages/Contributors'));
-const ContributorPrivacy = lazy(() => import('./pages/ContributorPrivacy'));
-const AdminDesk = CLOUD_DEPLOYMENT ? NotFound : lazy(() => import('./pages/AdminDesk'));
+import { lazy, Suspense } from "react";
+import { CLOUD_DEPLOYMENT } from "./lib/deployment";
+const Contributors = lazy(() => import("./pages/Contributors"));
+const ContributorPrivacy = lazy(() => import("./pages/ContributorPrivacy"));
+const ContributorRecordings =
+  CLOUD_DEPLOYMENT && import.meta.env.VITE_AUTHORITY_ENABLED !== "true"
+    ? NotFound
+    : lazy(() => import("./pages/ContributorRecordings"));
+const AdminDesk =
+  CLOUD_DEPLOYMENT && import.meta.env.VITE_AUTHORITY_ENABLED !== "true"
+    ? NotFound
+    : lazy(() => import("./pages/AuthorityDesk"));
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/gis" component={GisOperations} />
+      <Route path="/design-preview" component={Home} />
       <Route path="/admin" component={AdminDesk} />
+      <Route path="/admin/:section" component={AdminDesk} />
       <Route path="/contribute/privacy" component={ContributorPrivacy} />
+      <Route path="/contribute/recordings" component={ContributorRecordings} />
       <Route path="/contribute/login" component={Contributors} />
       <Route path="/contribute" component={Contributors} />
       <Route path="/404" component={NotFound} />
@@ -31,10 +41,18 @@ function Router() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="dark" switchable>
         <TooltipProvider>
           <Toaster richColors position="bottom-right" />
-          <Suspense fallback={<div className="min-h-screen bg-slate-950 p-8 text-slate-300">Loading page…</div>}><Router /></Suspense>
+          <Suspense
+            fallback={
+              <div className="min-h-screen bg-slate-950 p-8 text-slate-300">
+                Loading page…
+              </div>
+            }
+          >
+            <Router />
+          </Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

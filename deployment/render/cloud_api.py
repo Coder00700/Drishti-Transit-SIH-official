@@ -330,6 +330,47 @@ def vehicles():
             'notice': 'Public location publishing is not connected. Recorded GPS is never presented as live.'}
 
 
+@app.get('/api/v1/public/weather')
+def public_weather(latitude: float = 28.65, longitude: float = 77.10):
+    if not 28.2 <= latitude <= 29.1 or not 76.7 <= longitude <= 77.6:
+        raise HTTPException(422, 'Coordinates must be within the Delhi service area.')
+    try:
+        from .external_feeds import weather
+        return weather(latitude, longitude)
+    except Exception:
+        raise HTTPException(503, 'Weather data is temporarily unavailable.') from None
+
+
+@app.get('/api/v1/public/transit')
+def public_transit():
+    try:
+        from .external_feeds import transit
+        return transit()
+    except Exception:
+        raise HTTPException(503, 'Transit map data is temporarily unavailable.') from None
+
+
+@app.get('/api/v1/public/traffic')
+def public_traffic():
+    try:
+        from .external_feeds import traffic
+        return traffic()
+    except Exception:
+        raise HTTPException(503, 'Traffic data is temporarily unavailable.') from None
+
+
+@app.get('/api/v1/public/demo/overview')
+def public_demo_overview():
+    from .public_store import demo_overview
+    return demo_overview()
+
+
+@app.get('/api/v1/public/demo/roads')
+def public_demo_roads(area_id: str = ''):
+    from .public_store import demo_roads
+    return demo_roads(area_id=area_id)
+
+
 @app.get('/api/v1/public/roads')
 @app.get('/api/v1/public/grid')
 @app.get('/api/v1/public/assessments')
