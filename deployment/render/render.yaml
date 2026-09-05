@@ -13,6 +13,10 @@ services:
         value: Users
       - key: MONGODB_LOGIN_COLLECTION
         value: login
+      - key: PUBLICATION_REPLICA_ENABLED
+        value: "true"
+      - key: PUBLIC_DATABASE
+        value: DrishtiPublic
       - key: PORTAL_ORIGIN
         sync: false
       - key: EDGE_SHARED_SECRET

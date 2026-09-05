@@ -24,6 +24,9 @@ SAFE_USER = ('id', 'full_name', 'email', 'phone', 'email_verified', 'phone_verif
 DUMMY_HASH = password_hash(secrets.token_urlsafe(32))
 MAX_BODY = 16384
 
+def publication_replica_enabled():
+    return os.environ.get('PUBLICATION_REPLICA_ENABLED') == 'true'
+
 
 def local_mode():
     # Explicit developer-only profile. Never accepted on a Render deployment.
@@ -51,6 +54,10 @@ async def lifespan(app):
         db = database()
         db.command('ping')
         require_indexes(db)
+        if publication_replica_enabled():
+            from .public_store import current_release
+            public_db, _ = current_release()
+            public_db.command('ping')
     except (PyMongoError, RuntimeError, ValueError):
         # Do not leak connection details into platform startup tracebacks.
         raise RuntimeError('Cloud startup blocked: check private settings, database access and required indexes.') from None
@@ -189,6 +196,7 @@ def get_capabilities():
     return {**capabilities(), 'policy_version': POLICY_VERSION, 'identity_store': 'mongodb',
             'registration_enabled': os.getenv('ALLOW_REGISTRATION') == 'true',
             'vehicle_onboarding': False, 'capture': False, 'drive_references': False,
+            'recording_submission': False,
             'admin_visibility': False, 'assessment_mode': 'DEFERRED_LOCAL_BATCH',
             'notice': 'MongoDB account pilot only. Vehicle documents, Drive permissions and capture ingestion are not connected to these accounts yet.'}
 
@@ -307,6 +315,9 @@ def deferred_contributor(reserved: str, user=Depends(actor)):
 
 @app.get('/api/v1/public/overview')
 def overview():
+    if publication_replica_enabled():
+        from .public_store import overview as published_overview
+        return published_overview()
     return {'coverage': {'roads': 0, 'cells': 0}, 'updates': [],
             'reports': {'published': 0, 'resolved': 0, 'in_progress': 0, 'window': 'No cloud publication yet'},
             'model': {'status': 'DEFERRED_LOCAL_BATCH', 'label': 'Local batch assessment; publication not connected'},
@@ -322,7 +333,16 @@ def vehicles():
 @app.get('/api/v1/public/roads')
 @app.get('/api/v1/public/grid')
 @app.get('/api/v1/public/assessments')
-def pending_map():
+def pending_map(request: Request):
+    if publication_replica_enabled():
+        if request.url.path.endswith('/grid'):
+            return {'type': 'FeatureCollection', 'features': [], 'truncated': False}
+        from .public_store import roads as published_roads
+        try:
+            offset = min(max(int(request.query_params.get('offset', '0')), 0), 100000)
+        except ValueError:
+            raise HTTPException(422, 'Invalid map offset.') from None
+        return published_roads(area_id=request.query_params.get('area_id', ''), offset=offset)
     raise HTTPException(503, 'The cloud road-data publication connection is deferred. Basemap tiles remain available.')
 
 
