@@ -6,7 +6,7 @@ export async function onRequest({request, env}) {
   }});
   const url = new URL(request.url);
   // Prevent the public gateway from reaching local operations, admin or worker APIs.
-  const publicPath = /^\/api\/v1\/public\/(overview|roads|grid|vehicles|assessments)$/.test(url.pathname);
+  const publicPath = /^\/api\/v1\/public\/(overview|roads|grid|vehicles|assessments|weather|transit|traffic|demo\/(overview|roads))$/.test(url.pathname);
   const contributorPath = /^\/api\/v1\/contributors\/(capabilities|register|login|me|logout|consent|withdraw|deletion-request|activity|otp\/(send|check))$/.test(url.pathname);
   if (!publicPath && !contributorPath) return json('This API is not exposed by the cloud portal.', 404);
   if (!['GET', 'POST'].includes(request.method) || (publicPath && request.method !== 'GET')) return json('Method not allowed.', 405);
