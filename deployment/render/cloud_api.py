@@ -58,6 +58,14 @@ async def lifespan(app):
             from .public_store import current_release
             public_db, _ = current_release()
             public_db.command('ping')
+        # A sleeping free PostGIS service must not take down account/login APIs.
+        try:
+            from .postgis_store import enabled as postgis_enabled, ensure_schema, start_bootstrap
+            if postgis_enabled():
+                ensure_schema()
+                start_bootstrap()
+        except Exception:
+            pass
     except (PyMongoError, RuntimeError, ValueError):
         # Do not leak connection details into platform startup tracebacks.
         raise RuntimeError('Cloud startup blocked: check private settings, database access and required indexes.') from None
@@ -317,7 +325,16 @@ def deferred_contributor(reserved: str, user=Depends(actor)):
 def overview():
     if publication_replica_enabled():
         from .public_store import overview as published_overview
-        return published_overview()
+        result = published_overview()
+        try:
+            from .postgis_store import enabled as postgis_enabled, summary
+            if postgis_enabled():
+                spatial = summary()
+                result['coverage']['roads'] = spatial['counts'].get('VERIFIED', 0)
+                result['spatial_store'] = spatial
+        except Exception:
+            result['spatial_store'] = {'store': 'Aiven PostgreSQL/PostGIS', 'status': 'STARTING'}
+        return result
     return {'coverage': {'roads': 0, 'cells': 0}, 'updates': [],
             'reports': {'published': 0, 'resolved': 0, 'in_progress': 0, 'window': 'No cloud publication yet'},
             'model': {'status': 'DEFERRED_LOCAL_BATCH', 'label': 'Local batch assessment; publication not connected'},
@@ -366,7 +383,19 @@ def public_demo_overview():
 
 
 @app.get('/api/v1/public/demo/roads')
-def public_demo_roads(area_id: str = ''):
+def public_demo_roads(request: Request, area_id: str = ''):
+    try:
+        from .postgis_store import enabled as postgis_enabled, features
+        if postgis_enabled():
+            result = features(dict(request.query_params), 'DEMO')
+            if result['features']:
+                result['synthetic'] = True
+                result['disclaimer'] = 'Real OpenStreetMap geometry; synthetic demonstration severity—not a field assessment.'
+                return result
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    except Exception:
+        pass
     from .public_store import demo_roads
     return demo_roads(area_id=area_id)
 
@@ -375,6 +404,15 @@ def public_demo_roads(area_id: str = ''):
 @app.get('/api/v1/public/grid')
 @app.get('/api/v1/public/assessments')
 def pending_map(request: Request):
+    if request.url.path.endswith('/roads'):
+        try:
+            from .postgis_store import enabled as postgis_enabled, features
+            if postgis_enabled():
+                return features(dict(request.query_params), 'VERIFIED')
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
+        except Exception:
+            raise HTTPException(503, 'PostGIS road layer is starting. Please retry shortly.') from None
     if publication_replica_enabled():
         if request.url.path.endswith('/grid'):
             return {'type': 'FeatureCollection', 'features': [], 'truncated': False}

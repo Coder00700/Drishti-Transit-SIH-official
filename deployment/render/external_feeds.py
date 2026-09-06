@@ -47,13 +47,10 @@ def transit(min_lat=28.45, min_lng=76.90, max_lat=28.88, max_lng=77.35):
     try:
         raw = _json(url, 21600, ('transit', bbox))
     except Exception:
-        # Clearly labelled schematic continuity when the community Overpass service is busy.
-        return {'type': 'FeatureCollection', 'features': [
-            {'type':'Feature','geometry':{'type':'LineString','coordinates':[[77.010,28.621],[77.067,28.621],[77.117,28.633],[77.221,28.633]]},'properties':{'id':'schematic-blue','name':'Blue Line · schematic','railway':'subway','source':'Drishti schematic fallback'}},
-            {'type':'Feature','geometry':{'type':'LineString','coordinates':[[77.186,28.459],[77.209,28.556],[77.218,28.632],[77.208,28.725]]},'properties':{'id':'schematic-yellow','name':'Yellow Line · schematic','railway':'subway','source':'Drishti schematic fallback'}},
-            {'type':'Feature','geometry':{'type':'LineString','coordinates':[[77.102,28.704],[77.171,28.678],[77.228,28.670],[77.315,28.674]]},'properties':{'id':'schematic-red','name':'Red Line · schematic','railway':'subway','source':'Drishti schematic fallback'}},
-        ], 'provider': 'Schematic fallback', 'schematic': True,
-        'notice': 'Approximate display only; not live and not for navigation.',
+        # Never draw invented transit geometry when the community service is busy.
+        return {'type': 'FeatureCollection', 'features': [],
+        'provider': 'OpenStreetMap Overpass', 'schematic': False,
+        'notice': 'Transit geometry is temporarily unavailable; no approximate lines are drawn.',
         'delhi_bus_gtfs': 'https://otd.delhi.gov.in/', 'realtime_bus_authorized': False}
     features = []
     for item in raw.get('elements', []):

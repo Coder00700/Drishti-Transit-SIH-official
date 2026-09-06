@@ -165,14 +165,21 @@ export default function PublicGis() {
   useEffect(() => {
     const c = new AbortController();
     Promise.allSettled([
-      publicRequest<FeatureCollection>("demo/roads", c.signal).then(
-        setDemoRoads
-      ),
       publicRequest<FeatureCollection>("transit", c.signal).then(setTransit),
       publicRequest<FeatureCollection>("traffic", c.signal).then(setTraffic),
     ]);
     return () => c.abort();
   }, []);
+  useEffect(() => {
+    if (!bounds) return;
+    const c = new AbortController();
+    publicRequest<FeatureCollection>("demo/roads?" + bounds, c.signal)
+      .then(setDemoRoads)
+      .catch(() => {
+        if (!c.signal.aborted) setDemoRoads(null);
+      });
+    return () => c.abort();
+  }, [bounds]);
   return (
     <div className="preview-shell min-h-screen">
       <PublicHeader />
@@ -224,8 +231,9 @@ export default function PublicGis() {
         </p>
         {CLOUD_DEPLOYMENT && (
           <p role="status" className="demo-disclaimer">
-            Verified road publications remain separate. Synthetic demo roads are
-            shown only when the “Demo roads” layer is enabled.
+            {demoRoads?.features.length ?? 0} PostGIS demo road features in this
+            view. Geometry: OpenStreetMap. Severity: synthetic demonstration.
+            Verified publications remain separate.
           </p>
         )}
         {(error || fleetError || updatesError) && (
@@ -278,7 +286,7 @@ export default function PublicGis() {
             )}
             {demoRoads && showDemo && (
               <GeoJSON
-                key="demo-roads"
+                key={"demo-roads" + bounds}
                 data={demoRoads}
                 style={feature => ({
                   color:
@@ -287,13 +295,12 @@ export default function PublicGis() {
                       : feature?.properties?.severity === "MODERATE"
                         ? "#f59e0b"
                         : "#22c55e",
-                  weight: 6,
-                  opacity: 0.85,
-                  dashArray: "9 6",
+                  weight: 3,
+                  opacity: 0.78,
                 })}
                 onEachFeature={(feature, layer) =>
                   layer.bindPopup(
-                    `<strong>${feature.properties?.locality_name || feature.properties?.area_id}</strong><br>${feature.properties?.severity} severity<br><b>Synthetic demonstration</b>`
+                    `<strong>${feature.properties?.name || feature.properties?.locality_name || "Delhi road"}</strong><br>${feature.properties?.severity} demo severity<br><b>Real OSM geometry · synthetic condition</b>`
                   )
                 }
               />
