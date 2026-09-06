@@ -127,15 +127,19 @@ def _synthetic_severity(identifier: str) -> tuple[str, float]:
 def _download_osm() -> list[dict]:
     min_lng, min_lat, max_lng, max_lat = DELHI_BBOX
     bbox = f"{min_lat},{min_lng},{max_lat},{max_lng}"
-    query = (f'[out:json][timeout:60];way["highway"~"motorway|trunk|primary|secondary|tertiary"]'
-             f'({bbox});out tags geom;')
+    # Bound the first bootstrap so a free web worker is never held by an
+    # unbounded whole-city Overpass response. Later verified imports are
+    # performed by the separate administrator publication pipeline.
+    query = (f'[out:json][timeout:45];way["highway"~"motorway|trunk|primary|secondary|tertiary"]'
+             f'({bbox});out tags geom 700;')
     payload = urlencode({"data": query}).encode()
     last_error = None
-    for endpoint in ("https://overpass-api.de/api/interpreter",
-                     "https://overpass.kumi.systems/api/interpreter"):
+    for endpoint in ("https://overpass.private.coffee/api/interpreter",
+                     "https://overpass-api.de/api/interpreter"):
         try:
             request = Request(endpoint, data=payload,
-                              headers={"User-Agent": "DrishtiTransit-SIH-demo/1.0"})
+                              headers={"User-Agent": "DrishtiTransit/1.0 (+https://drishti-transit-sih-official.pages.dev/)",
+                                       "Accept": "application/json"})
             with urlopen(request, timeout=75) as response:
                 return json.loads(response.read().decode("utf-8")).get("elements", [])
         except Exception as exc:
