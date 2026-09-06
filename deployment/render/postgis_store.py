@@ -132,12 +132,11 @@ def _download_osm() -> list[dict]:
     # performed by the separate administrator publication pipeline.
     query = (f'[out:json][timeout:45];way["highway"~"motorway|trunk|primary|secondary|tertiary"]'
              f'({bbox});out tags geom 700;')
-    payload = urlencode({"data": query}).encode()
     last_error = None
     for endpoint in ("https://overpass.private.coffee/api/interpreter",
                      "https://overpass-api.de/api/interpreter"):
         try:
-            request = Request(endpoint, data=payload,
+            request = Request(endpoint + "?" + urlencode({"data": query}),
                               headers={"User-Agent": "DrishtiTransit/1.0 (+https://drishti-transit-sih-official.pages.dev/)",
                                        "Accept": "application/json"})
             with urlopen(request, timeout=75) as response:
@@ -172,7 +171,7 @@ def bootstrap_osm_demo() -> dict:
                 INSERT INTO public_map_features
                     (id,feature_kind,name,road_class,data_mode,severity,confidence,source,
                      source_url,observed_at,properties,geometry,updated_at)
-                VALUES (%s,'ROAD',%s,%s,'DEMO',%s,%s,%s,%s,%s,%s,
+                VALUES (%s,'ROAD',%s,%s,'DEMO',%s,%s,%s,%s,%s,%s::jsonb,
                         ST_SetSRID(ST_GeomFromGeoJSON(%s),4326),now())
                 ON CONFLICT (id) DO UPDATE SET name=excluded.name, road_class=excluded.road_class,
                     severity=excluded.severity, confidence=excluded.confidence,
@@ -191,8 +190,9 @@ def _bootstrap_worker() -> None:
             count = conn.execute("SELECT count(*) AS value FROM public_map_features WHERE data_mode='DEMO'").fetchone()["value"]
         if count < 500:
             bootstrap_osm_demo()
-    except Exception:
+    except Exception as exc:
         # The public API stays available; /status exposes whether data arrived.
+        print(f"PostGIS demo bootstrap skipped: {type(exc).__name__}", flush=True)
         return
 
 
