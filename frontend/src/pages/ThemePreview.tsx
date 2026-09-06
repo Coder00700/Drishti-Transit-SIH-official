@@ -25,7 +25,9 @@ import { useTheme } from "@/contexts/ThemeContext";
 import {
   publicRequest,
   type DemoOverview,
+  type AirQualitySnapshot,
   type PublicOverview,
+  type TrafficSnapshot,
   type WeatherSnapshot,
 } from "@/lib/publicApi";
 import "leaflet/dist/leaflet.css";
@@ -99,12 +101,17 @@ export default function ThemePreview() {
   const [publicData, setPublicData] = useState<PublicOverview | null>(null);
   const [demo, setDemo] = useState<DemoOverview | null>(null);
   const [weather, setWeather] = useState<WeatherSnapshot | null>(null);
+  const [weatherFailed, setWeatherFailed] = useState(false);
+  const [airQuality, setAirQuality] = useState<AirQualitySnapshot | null>(null);
+  const [traffic, setTraffic] = useState<TrafficSnapshot | null>(null);
   useEffect(() => {
     const c = new AbortController();
     Promise.allSettled([
       publicRequest<PublicOverview>("overview", c.signal).then(setPublicData),
       publicRequest<DemoOverview>("demo/overview", c.signal).then(setDemo),
-      publicRequest<WeatherSnapshot>("weather", c.signal).then(setWeather),
+      publicRequest<WeatherSnapshot>("weather", c.signal).then(setWeather).catch(() => setWeatherFailed(true)),
+      publicRequest<AirQualitySnapshot>("air-quality", c.signal).then(setAirQuality),
+      publicRequest<TrafficSnapshot>("traffic", c.signal).then(setTraffic),
     ]);
     return () => c.abort();
   }, []);
@@ -200,16 +207,16 @@ export default function ThemePreview() {
               <small>Delhi weather</small>
               <strong>
                 {weather?.temperature_c === undefined
-                  ? "—"
+                  ? weatherFailed ? "Unavailable" : "—"
                   : Math.round(weather.temperature_c) + "°C"}
               </strong>
               <p>
                 {weather
                   ? `${weather.rain_probability_percent ?? 0}% rain · ${weather.humidity_percent ?? 0}% humidity`
-                  : "Weather feed loading"}
+                  : weatherFailed ? "Weather providers are temporarily unavailable" : "Weather feed loading"}
               </p>
             </div>
-            <em>{weather?.live ? "Live" : "Waiting"}</em>
+            <em>{weather?.live ? (weather.fallback ? "Backup live" : "Live") : weatherFailed ? "Offline" : "Waiting"}</em>
           </article>
           <article>
             <span className="metric-icon transit">
@@ -227,11 +234,20 @@ export default function ThemePreview() {
               <Navigation />
             </span>
             <div>
-              <small>Traffic status</small>
-              <strong>Moderate</strong>
-              <p>3 congested demo corridors</p>
+              <small>Traffic information</small>
+              <strong>{traffic?.live ? `${traffic.features.length} incidents` : "Advisories"}</strong>
+              <p>{traffic?.live ? "Licensed live traffic feed" : "Official Delhi Police notices"}</p>
             </div>
-            <em>Preview</em>
+            <em>{traffic?.live ? "Live" : "Official link"}</em>
+          </article>
+          <article>
+            <span className="metric-icon weather"><Wind /></span>
+            <div>
+              <small>Delhi air quality</small>
+              <strong>{airQuality?.us_aqi == null ? "—" : `AQI ${Math.round(airQuality.us_aqi)}`}</strong>
+              <p>{airQuality ? `PM2.5 ${airQuality.pm2_5 ?? "—"} µg/m³` : "Air-quality feed loading"}</p>
+            </div>
+            <em>{airQuality?.live ? "Live" : "Waiting"}</em>
           </article>
           <article>
             <span className="metric-icon alert">
@@ -341,11 +357,12 @@ export default function ThemePreview() {
               </div>
               <div className="traffic-meter">
                 <div>
-                  <span>Traffic pressure</span>
-                  <b>Moderate</b>
+                  <span>Traffic source</span>
+                  <b>{traffic?.live ? "Live incidents" : "Official advisories"}</b>
                 </div>
-                <progress value="61" max="100" />
-                <small>Representative interface data</small>
+                {traffic?.live && <progress value={Math.min(traffic.features.length, 100)} max="100" />}
+                <small>{traffic?.notice ?? traffic?.provider ?? "Checking traffic provider"}</small>
+                {traffic?.advisory_url && <a href={traffic.advisory_url} target="_blank" rel="noreferrer">Open Delhi Traffic Police advisories</a>}
               </div>
               <div className="alert-card">
                 <AlertTriangle />

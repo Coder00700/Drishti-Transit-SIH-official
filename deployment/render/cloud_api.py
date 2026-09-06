@@ -358,6 +358,17 @@ def public_weather(latitude: float = 28.65, longitude: float = 77.10):
         raise HTTPException(503, 'Weather data is temporarily unavailable.') from None
 
 
+@app.get('/api/v1/public/air-quality')
+def public_air_quality(latitude: float = 28.65, longitude: float = 77.10):
+    if not 28.2 <= latitude <= 29.1 or not 76.7 <= longitude <= 77.6:
+        raise HTTPException(422, 'Coordinates must be within the Delhi service area.')
+    try:
+        from .external_feeds import air_quality
+        return air_quality(latitude, longitude)
+    except Exception:
+        raise HTTPException(503, 'Air-quality data is temporarily unavailable.') from None
+
+
 @app.get('/api/v1/public/transit')
 def public_transit():
     try:

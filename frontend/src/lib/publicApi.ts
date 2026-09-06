@@ -48,6 +48,7 @@ export type DemoOverview = {
 };
 export type WeatherSnapshot = {
   provider: string;
+  fallback?: boolean;
   temperature_c: number;
   feels_like_c: number;
   humidity_percent: number;
@@ -57,6 +58,22 @@ export type WeatherSnapshot = {
   rain_probability_percent: number | null;
   observed_at: string;
   live: boolean;
+};
+export type AirQualitySnapshot = {
+  provider: string;
+  attribution: string;
+  us_aqi: number | null;
+  pm2_5: number | null;
+  pm10: number | null;
+  observed_at: string;
+  live: boolean;
+};
+export type TrafficSnapshot = GeoJSON.FeatureCollection & {
+  provider: string;
+  configured: boolean;
+  live: boolean;
+  advisory_url?: string;
+  notice?: string;
 };
 export async function publicRequest<T>(
   path: string,
