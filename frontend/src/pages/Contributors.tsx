@@ -71,6 +71,7 @@ export default function Contributors() {
         </form><p className="mt-4 text-xs leading-6 text-slate-500">Local pilot—not a government service. Do not upload another person’s documents. Read the notice before registration; production terms need the project operator’s review.</p>
       </section>:<>
         <section className="provider-card"><p className="provider-eyebrow">01 / ACCOUNT & CONTACT VERIFICATION</p><h2 className="mt-2 text-xl font-semibold">Welcome, {profile.user.full_name}</h2><p className="mt-2 text-xs text-slate-400">Contributor access is separate from the normal bus/map pages.</p>
+          {(!import.meta.env.VITE_DEPLOYMENT_MODE || import.meta.env.VITE_AUTHORITY_ENABLED==='true')&&<Link href="/contribute/recordings" className="provider-primary mt-5 inline-flex">Record or upload road footage<Upload size={16}/></Link>}
           <div className="mt-5 grid gap-4 md:grid-cols-2">{(['email','sms'] as const).map(channel=>{
             const verified=channel==='email'?profile.user.email_verified:profile.user.phone_verified;
             const available=channel==='email'?cap?.email_otp:cap?.sms_otp;
@@ -100,7 +101,6 @@ export default function Contributors() {
     </main>
   </div>;
 }
-
 function OtpCard({channel,destination,verified,available,busy,action,refresh}:{channel:'email'|'sms';destination:string;verified:boolean;available:boolean;busy:boolean;action:(work:()=>Promise<unknown>,message?:string)=>Promise<void>;refresh:()=>Promise<unknown>}) {
   const [optIn,setOptIn]=useState(false);const [code,setCode]=useState('');
   return <div className="space-y-3 rounded-xl border border-white/10 p-4"><div className="flex items-center justify-between"><p className="text-sm">{channel==='email'?'Email':'Phone'} verification</p>{verified?<CheckCircle2 size={17} className="text-emerald-300"/>:<Circle size={17} className="text-slate-500"/>}</div><p className="break-all text-xs text-slate-400">{destination}</p>{verified?<p className="text-xs text-emerald-300">Verified by OTP provider</p>:<><label className="provider-check text-xs leading-5"><input type="checkbox" checked={optIn} onChange={e=>setOptIn(e.target.checked)}/>Send this {channel==='email'?'email address':'phone number'} to Twilio{channel==='email'?'/SendGrid':''} to deliver a verification code.</label><button disabled={busy||!available||!optIn} className="provider-secondary w-full" onClick={()=>void action(()=>contributorRequest('/otp/send','POST',{channel,delivery_consent:true}),'OTP requested. It expires in 10 minutes; resend after 60 seconds.')}>{available?'Send OTP':'OTP service not configured'}</button><form className="flex gap-2" onSubmit={e=>{e.preventDefault();void action(async()=>{await contributorRequest('/otp/check','POST',{channel,code});setCode('');await refresh();},'Contact verified.');}}><input aria-label={channel+' OTP'} required pattern="[0-9]{4,10}" inputMode="numeric" autoComplete="one-time-code" className="provider-input min-w-0" value={code} onChange={e=>setCode(e.target.value)} placeholder="Verification code"/><button disabled={busy||!available} className="provider-secondary">Verify</button></form></>}</div>;

@@ -17,6 +17,10 @@ services:
         value: "true"
       - key: PUBLIC_DATABASE
         value: DrishtiPublic
+      - key: AUTHORITY_ENABLED
+        value: "true"
+      - key: AUTHORITY_DATABASE
+        value: DrishtiAuthority
       - key: PORTAL_ORIGIN
         sync: false
       - key: EDGE_SHARED_SECRET

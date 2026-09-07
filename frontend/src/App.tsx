@@ -11,9 +11,14 @@ import { lazy, Suspense } from "react";
 import { CLOUD_DEPLOYMENT } from "./lib/deployment";
 const Contributors = lazy(() => import("./pages/Contributors"));
 const ContributorPrivacy = lazy(() => import("./pages/ContributorPrivacy"));
-const AdminDesk = CLOUD_DEPLOYMENT
-  ? NotFound
-  : lazy(() => import("./pages/AdminDesk"));
+const ContributorRecordings =
+  CLOUD_DEPLOYMENT && import.meta.env.VITE_AUTHORITY_ENABLED !== "true"
+    ? NotFound
+    : lazy(() => import("./pages/ContributorRecordings"));
+const AdminDesk =
+  CLOUD_DEPLOYMENT && import.meta.env.VITE_AUTHORITY_ENABLED !== "true"
+    ? NotFound
+    : lazy(() => import("./pages/AuthorityDesk"));
 
 function Router() {
   return (
@@ -22,7 +27,9 @@ function Router() {
       <Route path="/gis" component={GisOperations} />
       <Route path="/design-preview" component={Home} />
       <Route path="/admin" component={AdminDesk} />
+      <Route path="/admin/:section" component={AdminDesk} />
       <Route path="/contribute/privacy" component={ContributorPrivacy} />
+      <Route path="/contribute/recordings" component={ContributorRecordings} />
       <Route path="/contribute/login" component={Contributors} />
       <Route path="/contribute" component={Contributors} />
       <Route path="/404" component={NotFound} />
@@ -30,7 +37,6 @@ function Router() {
     </Switch>
   );
 }
-
 export default function App() {
   return (
     <ErrorBoundary>

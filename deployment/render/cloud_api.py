@@ -28,6 +28,10 @@ def publication_replica_enabled():
     return os.environ.get('PUBLICATION_REPLICA_ENABLED') == 'true'
 
 
+def authority_enabled():
+    return os.environ.get('AUTHORITY_ENABLED') == 'true'
+
+
 def local_mode():
     # Explicit developer-only profile. Never accepted on a Render deployment.
     return os.environ.get('DRISHTI_LOCAL_MONGO') == 'true' and not os.environ.get('RENDER')
@@ -58,6 +62,15 @@ async def lifespan(app):
             from .public_store import current_release
             public_db, _ = current_release()
             public_db.command('ping')
+        if authority_enabled():
+            # Authority data is deliberately isolated from contributor accounts.
+            # Fail closed during startup if its database or required indexes are
+            # unavailable; otherwise the UI could appear to accept publications
+            # that were never stored.
+            from local_admin_network.store import setup as setup_authority
+            authority_db = app.state.authority_db()
+            authority_db.command('ping')
+            setup_authority(authority_db)
         # A sleeping free PostGIS service must not take down account/login APIs.
         try:
             from .postgis_store import enabled as postgis_enabled, ensure_schema, start_bootstrap
@@ -433,6 +446,12 @@ def pending_map(request: Request):
         except ValueError:
             raise HTTPException(422, 'Invalid map offset.') from None
         return published_roads(area_id=request.query_params.get('area_id', ''), offset=offset)
+    if authority_enabled():
+        # A newly enabled authority workspace may not have an approved road
+        # release yet. Keep the public basemap operational while clearly
+        # reporting an empty, unverified data layer.
+        return {'type': 'FeatureCollection', 'features': [], 'truncated': False,
+                'publication_status': 'AWAITING_GLOBAL_APPROVAL'}
     raise HTTPException(503, 'The cloud road-data publication connection is deferred. Basemap tiles remain available.')
 
 
@@ -441,3 +460,15 @@ def pending_map(request: Request):
 def pending_worker():
     # No ingestion implementation or worker credentials until the separate AI phase.
     raise HTTPException(503, 'Local batch-review integration is deferred and disabled.')
+
+
+# The public Render service exposes authority operations only when explicitly
+# enabled. Cloud requests must still pass the outer gateway-secret/origin
+# boundary, and authority mutations additionally require their separate session
+# cookie and CSRF token.
+if authority_enabled():
+    from local_admin_network.app import attach as attach_authority
+    from local_admin_network.evidence import contributor_router as authority_contributor_router
+
+    attach_authority(app)
+    app.include_router(authority_contributor_router(actor, current_consent))

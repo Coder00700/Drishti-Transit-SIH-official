@@ -29,6 +29,7 @@ return {
     host: '127.0.0.1',
     allowedHosts: ["localhost", "127.0.0.1"],
     proxy: {
+      '/api/v1/authority': {target: 'http://127.0.0.1:8002', changeOrigin: true, xfwd: false},
       ...(mongoContributors ? {
         '/api/v1/contributors': {target: 'http://127.0.0.1:8001', changeOrigin: true, xfwd: false},
       } : {}),

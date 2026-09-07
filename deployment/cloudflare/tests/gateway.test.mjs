@@ -6,6 +6,27 @@ const env = {RENDER_API_ORIGIN: 'https://test-service.onrender.com', EDGE_SHARED
 const origin = 'https://drishti-test.pages.dev';
 const call = (path, options = {}, settings = env) => onRequest({request: new Request(origin + path, options), env: settings});
 
+test('authority rollout is opt-in and sessions stay separate', async () => {
+  assert.equal((await call('/api/v1/authority/login')).status,404);
+  const original=globalThis.fetch;
+  try {
+    globalThis.fetch=async(url,options)=>{
+      assert.equal(options.headers.get('Cookie'),'drishti_authority=authority-token');
+      assert.equal(options.headers.get('X-Authority-CSRF'),'authority-csrf');
+      assert.equal(options.headers.get('X-Contributor-CSRF'),null);
+      return Response.json({ok:true});
+    };
+    const response=await call('/api/v1/authority/logout',{method:'POST',body:'{}',headers:{Origin:origin,'Content-Type':'application/json',
+      Cookie:'drishti_contributor=user-token; drishti_authority=authority-token','X-Authority-CSRF':'authority-csrf','X-Contributor-CSRF':'user-csrf'}},{...env,AUTHORITY_ENABLED:'true'});
+    assert.equal(response.status,200);
+    assert.equal((await call('/api/v1/authority/arbitrary',{},{...env,AUTHORITY_ENABLED:'true'})).status,404);
+  } finally {globalThis.fetch=original;}
+});
+test('authority uploads have a bounded two-MB limit', async()=>{
+  const options={method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'x'.repeat(2*1024*1024+1)};
+  assert.equal((await call('/api/v1/authority/imports',options,{...env,AUTHORITY_ENABLED:'true'})).status,413);
+});
+
 test('local, administrator, worker and unexpected routes are denied', async () => {
   for (const path of ['/api/v1/recordings', '/api/v1/admin/login', '/api/v1/internal/assessment-batches', '/api/v1/contributors/vehicles']) {
     assert.equal((await call(path)).status, 404);
